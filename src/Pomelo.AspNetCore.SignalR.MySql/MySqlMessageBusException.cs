@@ -9,9 +9,9 @@ namespace Pomelo.AspNetCore.SignalR.MySql
 #if NET451
     [Serializable]
 #endif
-    public class SqlMessageBusException : Exception
+    public class MySqlMessageBusException : Exception
     {
-        public SqlMessageBusException(string message)
+        public MySqlMessageBusException(string message)
             : base(message)
         {
 

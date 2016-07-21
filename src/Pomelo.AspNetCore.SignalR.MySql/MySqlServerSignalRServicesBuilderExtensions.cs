@@ -12,17 +12,17 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class SqlServerSignalRServicesBuilderExtensions
     {
-        public static SignalRServicesBuilder AddSqlServer(this SignalRServicesBuilder builder, Action<SqlScaleoutOptions> configureOptions = null)
+        public static SignalRServicesBuilder AddMySql(this SignalRServicesBuilder builder, Action<MySqlScaleoutOptions> configureOptions = null)
         {
-            return builder.AddSqlServer(configuration: null, configureOptions: configureOptions);
+            return builder.AddMySql(configuration: null, configureOptions: configureOptions);
         }
-        public static SignalRServicesBuilder AddSqlServer(this SignalRServicesBuilder builder, IConfiguration configuration, Action<SqlScaleoutOptions> configureOptions = null)
+        public static SignalRServicesBuilder AddMySql(this SignalRServicesBuilder builder, IConfiguration configuration, Action<MySqlScaleoutOptions> configureOptions = null)
         {
-            builder.ServiceCollection.Add(ServiceDescriptor.Singleton<IMessageBus, SqlMessageBus>());
+            builder.ServiceCollection.Add(ServiceDescriptor.Singleton<IMessageBus, MySqlMessageBus>());
 
             if (configuration != null)
             {
-                builder.ServiceCollection.Configure<SqlScaleoutOptions>(configuration);
+                builder.ServiceCollection.Configure<MySqlScaleoutOptions>(configuration);
             }
 
             if (configureOptions != null)

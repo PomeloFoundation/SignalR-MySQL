@@ -9,12 +9,12 @@ namespace Pomelo.AspNetCore.SignalR
     /// <summary>
     /// Settings for the SQL Server scale-out message bus implementation.
     /// </summary>
-    public class SqlScaleoutOptions : ScaleoutOptions
+    public class MySqlScaleoutOptions : ScaleoutOptions
     {
         private string _connectionString;
         private int _tableCount;
         
-        public SqlScaleoutOptions()
+        public MySqlScaleoutOptions()
         {
             _tableCount = 1;
         }

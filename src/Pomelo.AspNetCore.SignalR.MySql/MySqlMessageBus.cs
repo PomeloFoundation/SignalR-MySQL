@@ -18,39 +18,39 @@ namespace Pomelo.AspNetCore.SignalR.MySql
     /// <summary>
     /// Uses SQL Server tables to scale-out SignalR applications in web farms.
     /// </summary>
-    public class SqlMessageBus : ScaleoutMessageBus
+    public class MySqlMessageBus : ScaleoutMessageBus
     {
         internal const string SchemaName = "SignalR";
 
         private const string _tableNamePrefix = "Messages";
 
         private readonly string _connectionString;
-        private readonly SqlScaleoutOptions _configuration;
+        private readonly MySqlScaleoutOptions _configuration;
 
         private readonly ILogger _logger;
         private readonly IDbProviderFactory _dbProviderFactory;
-        private readonly List<SqlStream> _streams = new List<SqlStream>();
+        private readonly List<MySqlStream> _streams = new List<MySqlStream>();
 
         /// <summary>
         /// Creates a new instance of the SqlMessageBus class.
         /// </summary>
         /// <param name="resolver">The resolver to use.</param>
         /// <param name="configuration">The SQL scale-out configuration options.</param>
-        public SqlMessageBus(IStringMinifier stringMinifier,
+        public MySqlMessageBus(IStringMinifier stringMinifier,
                                      ILoggerFactory loggerFactory,
                                      IPerformanceCounterManager performanceCounterManager,
                                      IOptions<MessageBusOptions> optionsAccessor,
-                                     IOptions<SqlScaleoutOptions> scaleoutOptionsAccessor)
+                                     IOptions<MySqlScaleoutOptions> scaleoutOptionsAccessor)
             : this(stringMinifier, loggerFactory, performanceCounterManager, optionsAccessor, scaleoutOptionsAccessor, MySqlClientFactory.Instance.AsIDbProviderFactory())
         {
 
         }
 
-        internal SqlMessageBus(IStringMinifier stringMinifier,
+        internal MySqlMessageBus(IStringMinifier stringMinifier,
                                      ILoggerFactory loggerFactory,
                                      IPerformanceCounterManager performanceCounterManager,
                                      IOptions<MessageBusOptions> optionsAccessor,
-                                     IOptions<SqlScaleoutOptions> scaleoutOptionsAccessor,
+                                     IOptions<MySqlScaleoutOptions> scaleoutOptionsAccessor,
                                      IDbProviderFactory dbProviderFactory)
             : base(stringMinifier, loggerFactory, performanceCounterManager, optionsAccessor, scaleoutOptionsAccessor)
         {
@@ -59,7 +59,7 @@ namespace Pomelo.AspNetCore.SignalR.MySql
             _configuration = configuration;
             _dbProviderFactory = dbProviderFactory;
 
-            _logger = loggerFactory.CreateLogger<SqlMessageBus>();
+            _logger = loggerFactory.CreateLogger<MySqlMessageBus>();
             ThreadPool.QueueUserWorkItem(Initialize);
         }
 
@@ -99,7 +99,7 @@ namespace Pomelo.AspNetCore.SignalR.MySql
             {
                 try
                 {
-                    var installer = new SqlInstaller(_connectionString, _tableNamePrefix, _configuration.TableCount, _logger);
+                    var installer = new MySqlInstaller(_connectionString, _tableNamePrefix, _configuration.TableCount, _logger);
                     installer.Install();
                     break;
                 }
@@ -123,7 +123,7 @@ namespace Pomelo.AspNetCore.SignalR.MySql
                 var streamIndex = i;
                 var tableName = String.Format(CultureInfo.InvariantCulture, "{0}_{1}", _tableNamePrefix, streamIndex);
 
-                var stream = new SqlStream(streamIndex, _connectionString, tableName, _logger, _dbProviderFactory);
+                var stream = new MySqlStream(streamIndex, _connectionString, tableName, _logger, _dbProviderFactory);
                 stream.Queried += () => Open(streamIndex);
                 stream.Faulted += (ex) => OnError(streamIndex, ex);
                 stream.Received += (id, messages) => OnReceived(streamIndex, id, messages);

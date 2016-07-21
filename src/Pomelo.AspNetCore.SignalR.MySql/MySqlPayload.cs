@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.SignalR.Messaging;
 
 namespace Pomelo.AspNetCore.SignalR.MySql
 {
-    public static class SqlPayload
+    public static class MySqlPayload
     {
         public static byte[] ToBytes([NotNull] IList<Message> messages)
         {

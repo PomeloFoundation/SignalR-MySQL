@@ -10,15 +10,15 @@ using Microsoft.Extensions.Logging;
 
 namespace Pomelo.AspNetCore.SignalR.MySql
 {
-    internal class SqlStream : IDisposable
+    internal class MySqlStream : IDisposable
     {
         private readonly int _streamIndex;
         private readonly ILogger _logger;
-        private readonly SqlSender _sender;
-        private readonly SqlReceiver _receiver;
+        private readonly MySqlSender _sender;
+        private readonly MySqlReceiver _receiver;
         private readonly string _loggerPrefix;
 
-        public SqlStream(int streamIndex, string connectionString, string tableName, ILogger logger, IDbProviderFactory dbProviderFactory)
+        public MySqlStream(int streamIndex, string connectionString, string tableName, ILogger logger, IDbProviderFactory dbProviderFactory)
         {
             _streamIndex = streamIndex;
             _logger = logger;
@@ -28,8 +28,8 @@ namespace Pomelo.AspNetCore.SignalR.MySql
             Received += (_, __) => { };
             Faulted += _ => { };
 
-            _sender = new SqlSender(connectionString, tableName, _logger, dbProviderFactory);
-            _receiver = new SqlReceiver(connectionString, tableName, _logger, _loggerPrefix, dbProviderFactory);
+            _sender = new MySqlSender(connectionString, tableName, _logger, dbProviderFactory);
+            _receiver = new MySqlReceiver(connectionString, tableName, _logger, _loggerPrefix, dbProviderFactory);
             _receiver.Queried += () => Queried();
             _receiver.Faulted += (ex) => Faulted(ex);
             _receiver.Received += (id, messages) => Received(id, messages);

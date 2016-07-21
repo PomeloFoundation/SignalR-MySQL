@@ -14,7 +14,7 @@ namespace Pomelo.AspNetCore.SignalR.MySql.Tests
         [InlineData("dummy", true)]
         public void ConnectionStringValidated(string connectionString, bool isValid)
         {
-            var config = new SqlScaleoutOptions();
+            var config = new MySqlScaleoutOptions();
             if (isValid)
             {
                 config.ConnectionString = connectionString;
@@ -32,7 +32,7 @@ namespace Pomelo.AspNetCore.SignalR.MySql.Tests
         [InlineData(10, true)]
         public void TableCountValidated(int tableCount, bool isValid)
         {
-            var config = new SqlScaleoutOptions();
+            var config = new MySqlScaleoutOptions();
 
             if (isValid)
             {

@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Pomelo.AspNetCore.SignalR.MySql
 {
-    internal class SqlInstaller
+    internal class MySqlInstaller
     {
         private const int SchemaVersion = 1;
         private const string SchemaTableName = "Schema";
@@ -17,7 +17,7 @@ namespace Pomelo.AspNetCore.SignalR.MySql
         private readonly int _tableCount;
         private readonly ILogger _logger;
 
-        public SqlInstaller(string connectionString, string tableNamePrefix, int tableCount, ILogger logger)
+        public MySqlInstaller(string connectionString, string tableNamePrefix, int tableCount, ILogger logger)
         {
             _connectionString = connectionString;
             _messagesTableNamePrefix = tableNamePrefix;
@@ -37,7 +37,7 @@ namespace Pomelo.AspNetCore.SignalR.MySql
 
             var script = GetType().GetTypeInfo().Assembly.StringResource("install.sql");
 
-            script = script.Replace("SET @SCHEMA_NAME = 'SignalR';", "SET @SCHEMA_NAME = '" + SqlMessageBus.SchemaName + "';");
+            script = script.Replace("SET @SCHEMA_NAME = 'SignalR';", "SET @SCHEMA_NAME = '" + MySqlMessageBus.SchemaName + "';");
             script = script.Replace("SET @SCHEMA_TABLE_NAME = 'Schema';", "SET @SCHEMA_TABLE_NAME = '" + SchemaTableName + "';");
             script = script.Replace("SET @TARGET_SCHEMA_VERSION = 1;", "SET @TARGET_SCHEMA_VERSION = " + SchemaVersion + ";");
             script = script.Replace("SET @MESSAGE_TABLE_COUNT = 1;", "SET @MESSAGE_TABLE_COUNT = " + _tableCount + ";");

@@ -12,14 +12,14 @@ using Microsoft.Extensions.Logging;
 
 namespace Pomelo.AspNetCore.SignalR.MySql
 {
-    internal class SqlSender
+    internal class MySqlSender
     {
         private readonly string _connectionString;
         private readonly string _insertDml;
         private readonly ILogger _logger;
         private readonly IDbProviderFactory _dbProviderFactory;
 
-        public SqlSender(string connectionString, string tableName, ILogger logger, IDbProviderFactory dbProviderFactory)
+        public MySqlSender(string connectionString, string tableName, ILogger logger, IDbProviderFactory dbProviderFactory)
         {
             _connectionString = connectionString;
             _insertDml = BuildInsertString(tableName);
@@ -31,7 +31,7 @@ namespace Pomelo.AspNetCore.SignalR.MySql
         {
             var insertDml = GetType().GetTypeInfo().Assembly.StringResource("send.sql");
 
-            return insertDml.Replace("[SignalR]", String.Format(CultureInfo.InvariantCulture, "[{0}]", SqlMessageBus.SchemaName))
+            return insertDml.Replace("[SignalR]", String.Format(CultureInfo.InvariantCulture, "[{0}]", MySqlMessageBus.SchemaName))
                             .Replace("[Messages_0", String.Format(CultureInfo.InvariantCulture, "[{0}", tableName));
         }
 
@@ -45,7 +45,7 @@ namespace Pomelo.AspNetCore.SignalR.MySql
             var parameter = _dbProviderFactory.CreateParameter();
             parameter.ParameterName = "Payload";
             parameter.DbType = DbType.Binary;
-            parameter.Value = SqlPayload.ToBytes(messages);
+            parameter.Value = MySqlPayload.ToBytes(messages);
 
             var operation = new DbOperation(_connectionString, _insertDml, _logger, parameter);
 

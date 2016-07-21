@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Pomelo.AspNetCore.SignalR.MySql
 {
-    internal class SqlReceiver : IDisposable
+    internal class MySqlReceiver : IDisposable
     {
         private readonly string _connectionString;
         private readonly string _tableName;
@@ -27,7 +27,7 @@ namespace Pomelo.AspNetCore.SignalR.MySql
         private ObservableDbOperation _dbOperation;
         private volatile bool _disposed;
 
-        public SqlReceiver(string connectionString, string tableName, ILogger logger, string loggerPrefix, IDbProviderFactory dbProviderFactory)
+        public MySqlReceiver(string connectionString, string tableName, ILogger logger, string loggerPrefix, IDbProviderFactory dbProviderFactory)
         {
             _connectionString = connectionString;
             _tableName = tableName;
@@ -39,8 +39,8 @@ namespace Pomelo.AspNetCore.SignalR.MySql
             Received += (_, __) => { };
             Faulted += _ => { };
 
-            _maxIdSql = String.Format(CultureInfo.InvariantCulture, _maxIdSql, SqlMessageBus.SchemaName, _tableName);
-            _selectSql = String.Format(CultureInfo.InvariantCulture, _selectSql, SqlMessageBus.SchemaName, _tableName);
+            _maxIdSql = String.Format(CultureInfo.InvariantCulture, _maxIdSql, MySqlMessageBus.SchemaName, _tableName);
+            _selectSql = String.Format(CultureInfo.InvariantCulture, _selectSql, MySqlMessageBus.SchemaName, _tableName);
         }
 
         public event Action Queried;
@@ -137,7 +137,7 @@ namespace Pomelo.AspNetCore.SignalR.MySql
 #endif
         {
             var id = record.GetInt64(0);
-            ScaleoutMessage message = SqlPayload.FromBytes(record);
+            ScaleoutMessage message = MySqlPayload.FromBytes(record);
 
             _logger.LogDebug(String.Format("{0}SqlReceiver last payload ID={1}, new payload ID={2}", _loggerPrefix, _lastPayloadId, id));
 
