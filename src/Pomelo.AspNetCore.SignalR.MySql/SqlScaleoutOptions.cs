@@ -4,7 +4,7 @@
 using System;
 using Microsoft.AspNetCore.SignalR.Messaging;
 
-namespace Microsoft.AspNetCore.SignalR
+namespace Pomelo.AspNetCore.SignalR
 {
     /// <summary>
     /// Settings for the SQL Server scale-out message bus implementation.

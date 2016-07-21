@@ -4,7 +4,7 @@
 #if NET451
 using System;
 using System.Data;
-using System.Data.SqlClient;
+using Pomelo.Data.MySql;
 
 namespace Pomelo.AspNetCore.SignalR.MySql
 {

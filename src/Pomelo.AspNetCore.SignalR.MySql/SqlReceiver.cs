@@ -22,8 +22,8 @@ namespace Pomelo.AspNetCore.SignalR.MySql
         private readonly IDbProviderFactory _dbProviderFactory;
 
         private long? _lastPayloadId = null;
-        private string _maxIdSql = "SELECT [PayloadId] FROM [{0}].[{1}_Id]";
-        private string _selectSql = "SELECT [PayloadId], [Payload], [InsertedOn] FROM [{0}].[{1}] WHERE [PayloadId] > @PayloadId";
+        private string _maxIdSql = "SELECT `PayloadId` FROM `{0}`.`{1}_Id`";
+        private string _selectSql = "SELECT `PayloadId`, `Payload`, `InsertedOn` FROM `{0}].[{1}` WHERE `PayloadId` > @PayloadId";
         private ObservableDbOperation _dbOperation;
         private volatile bool _disposed;
 

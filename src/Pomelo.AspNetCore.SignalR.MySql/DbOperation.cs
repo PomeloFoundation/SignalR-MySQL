@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
-using System.Data.SqlClient;
+using Pomelo.Data.MySql;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq;
@@ -20,7 +20,7 @@ namespace Pomelo.AspNetCore.SignalR.MySql
         private readonly IDbProviderFactory _dbProviderFactory;
 
         public DbOperation(string connectionString, string commandText, ILogger logger)
-            : this(connectionString, commandText, logger, SqlClientFactory.Instance.AsIDbProviderFactory())
+            : this(connectionString, commandText, logger, MySqlClientFactory.Instance.AsIDbProviderFactory())
         {
 
         }

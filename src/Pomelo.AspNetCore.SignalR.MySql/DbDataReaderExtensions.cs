@@ -3,7 +3,7 @@
 
 using System;
 using System.Data.Common;
-using System.Data.SqlClient;
+using Pomelo.Data.MySql;
 using JetBrains.Annotations;
 
 namespace Pomelo.AspNetCore.SignalR.MySql

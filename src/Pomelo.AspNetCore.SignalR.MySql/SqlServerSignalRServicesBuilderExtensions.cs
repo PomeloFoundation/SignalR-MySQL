@@ -4,6 +4,7 @@
 using System;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Messaging;
+using Pomelo.AspNetCore.SignalR;
 using Pomelo.AspNetCore.SignalR.MySql;
 using Microsoft.Extensions.Configuration;
 

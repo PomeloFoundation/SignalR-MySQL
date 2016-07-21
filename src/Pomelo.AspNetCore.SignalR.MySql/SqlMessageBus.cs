@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using Pomelo.Data.MySql;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Threading;
@@ -41,7 +41,7 @@ namespace Pomelo.AspNetCore.SignalR.MySql
                                      IPerformanceCounterManager performanceCounterManager,
                                      IOptions<MessageBusOptions> optionsAccessor,
                                      IOptions<SqlScaleoutOptions> scaleoutOptionsAccessor)
-            : this(stringMinifier, loggerFactory, performanceCounterManager, optionsAccessor, scaleoutOptionsAccessor, SqlClientFactory.Instance.AsIDbProviderFactory())
+            : this(stringMinifier, loggerFactory, performanceCounterManager, optionsAccessor, scaleoutOptionsAccessor, MySqlClientFactory.Instance.AsIDbProviderFactory())
         {
 
         }
