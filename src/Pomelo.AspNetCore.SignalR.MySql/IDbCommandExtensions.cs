@@ -35,7 +35,7 @@ namespace Pomelo.AspNetCore.SignalR.MySql
         public static Task<int> ExecuteNonQueryAsync(this DbCommand command)
 #endif
         {
-            var sqlCommand = command as SqlCommand;
+            var sqlCommand = command as MySqlCommand;
 
             if (sqlCommand != null)
             {

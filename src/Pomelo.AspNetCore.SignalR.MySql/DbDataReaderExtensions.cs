@@ -12,13 +12,13 @@ namespace Pomelo.AspNetCore.SignalR.MySql
     {
         public static byte[] GetBinary([NotNull]this DbDataReader reader, int ordinalIndex)
         {
-            var sqlReader = reader as SqlDataReader;
+            var sqlReader = reader as MySqlDataReader;
             if (sqlReader == null)
             {
                 throw new NotSupportedException();
             }
 
-            return sqlReader.GetSqlBinary(ordinalIndex).Value;
+            return sqlReader.GetBinary(ordinalIndex);
         }
     }
 }
