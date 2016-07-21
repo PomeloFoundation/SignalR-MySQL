@@ -13,9 +13,5 @@ namespace Pomelo.AspNetCore.SignalR.MySql
     {
         bool StartSqlDependencyListener();
         IList<Tuple<int, int>> UpdateLoopRetryDelays { get; }
-
-#if NET451
-        void AddSqlDependency(IDbCommand command, Action<SqlNotificationEventArgs> callback);
-#endif
     }
 }

@@ -16,20 +16,6 @@ namespace Pomelo.AspNetCore.SignalR.MySql
         private readonly static TimeSpan _dependencyTimeout = TimeSpan.FromSeconds(60);
 
 #if NET451
-        public static void AddSqlDependency([NotNull]this IDbCommand command, Action<SqlNotificationEventArgs> callback)
-        {
-            var sqlCommand = command as SqlCommand;
-            if (sqlCommand == null)
-            {
-                throw new NotSupportedException();
-            }
-
-            var dependency = new SqlDependency(sqlCommand, null, (int)_dependencyTimeout.TotalSeconds);
-            dependency.OnChange += (o, e) => callback(e);
-        }
-#endif
-
-#if NET451
         public static Task<int> ExecuteNonQueryAsync(this IDbCommand command)
 #else
         public static Task<int> ExecuteNonQueryAsync(this DbCommand command)

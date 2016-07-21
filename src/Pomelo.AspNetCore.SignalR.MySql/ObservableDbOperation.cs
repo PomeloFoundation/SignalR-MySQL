@@ -69,15 +69,9 @@ namespace Pomelo.AspNetCore.SignalR.MySql
         {
             Faulted += _ => { };
             Queried += () => { };
-#if NET451
-            Changed += () => { };
-#endif
         }
 
         public event Action Queried;
-#if NET451
-        public event Action Changed;
-#endif
         public event Action<Exception> Faulted;
 
         /// <summary>
@@ -169,80 +163,6 @@ namespace Pomelo.AspNetCore.SignalR.MySql
                             // Last retry loop and we're not using notifications so just stay looping on the last retry delay
                             j = j - 1;
                         }
-                        else
-                        {
-#if NET451
-                            // No records after all retries, set up a SQL notification
-                            try
-                            {
-                                Logger.LogDebug("{0}Setting up SQL notification", LoggerPrefix);
-
-                                recordCount = ExecuteReader(processRecord, command =>
-                                {
-                                    _dbBehavior.AddSqlDependency(command, e => SqlDependency_OnChange(e, processRecord));
-                                });
-
-                                Queried();
-
-                                if (recordCount > 0)
-                                {
-                                    Logger.LogDebug("{0}Records were returned by the command that sets up the SQL notification, restarting the receive loop", LoggerPrefix);
-
-                                    i = -1;
-                                    break; // break the inner for loop
-                                }
-                                else
-                                {
-                                    var previousState = Interlocked.CompareExchange(ref _notificationState, NotificationState.AwaitingNotification,
-                                        NotificationState.ProcessingUpdates);
-
-                                    if (previousState == NotificationState.AwaitingNotification)
-                                    {
-                                        Logger.LogError("{0}A SQL notification was already running. Overlapping receive loops detected, this should never happen. BUG!", LoggerPrefix);
-
-                                        return;
-                                    }
-
-                                    if (previousState == NotificationState.NotificationReceived)
-                                    {
-                                        // Failed to change _notificationState from ProcessingUpdates to AwaitingNotification, it was already NotificationReceived
-
-                                        Logger.LogDebug("{0}The SQL notification fired before the receive loop returned, restarting the receive loop", LoggerPrefix);
-
-                                        i = -1;
-                                        break; // break the inner for loop
-                                    }
-
-                                }
-
-                                Logger.LogDebug("{0}No records received while setting up SQL notification", LoggerPrefix);
-
-                                // We're in a wait state for a notification now so check if we're disposing
-                                lock (_stopLocker)
-                                {
-                                    if (_disposing)
-                                    {
-                                        _stopHandle.Set();
-                                    }
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Logger.LogError(String.Format("{0}Error in SQL receive loop: {1}", LoggerPrefix, ex));
-                                Faulted(ex);
-
-                                // Re-enter the loop on the last retry delay
-                                j = j - 1;
-
-                                if (retryDelay > 0)
-                                {
-                                    Logger.LogDebug(String.Format("{0}Waiting {1}ms before checking for messages again", LoggerPrefix, retryDelay));
-
-                                    Thread.Sleep(retryDelay);
-                                }
-                            }
-#endif
-                        }
                     }
                 }
             }
@@ -257,17 +177,6 @@ namespace Pomelo.AspNetCore.SignalR.MySql
             {
                 _disposing = true;
             }
-
-#if NET451
-            if (_notificationState != NotificationState.Disabled)
-            {
-                try
-                {
-                    SqlDependency.Stop(ConnectionString);
-                }
-                catch (Exception) { }
-            }
-#endif
             if (Interlocked.Read(ref _notificationState) == NotificationState.ProcessingUpdates)
             {
                 _stopHandle.Wait();
@@ -275,139 +184,11 @@ namespace Pomelo.AspNetCore.SignalR.MySql
             _stopHandle.Dispose();
         }
 
-#if NET451
-        protected virtual void AddSqlDependency(IDbCommand command, Action<SqlNotificationEventArgs> callback)
-        {
-            command.AddSqlDependency(e => callback(e));
-        }
-
-        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "On a background thread and we report exceptions asynchronously"),
-         SuppressMessage("Microsoft.Usage", "CA1801:ReviewUnusedParameters", MessageId = "sender", Justification = "Event handler")]
-        protected virtual void SqlDependency_OnChange(SqlNotificationEventArgs e, Action<DbDataReader, DbOperation> processRecord)
-        {
-            Logger.LogInformation("{0}SQL notification change fired", LoggerPrefix);
-
-            lock (_stopLocker)
-            {
-                if (_disposing)
-                {
-                    return;
-                }
-            }
-
-            var previousState = Interlocked.CompareExchange(ref _notificationState,
-                NotificationState.NotificationReceived, NotificationState.ProcessingUpdates);
-
-            if (previousState == NotificationState.NotificationReceived)
-            {
-                Logger.LogError("{0}Overlapping SQL change notifications received, this should never happen, BUG!", LoggerPrefix);
-
-                return;
-            }
-            if (previousState == NotificationState.ProcessingUpdates)
-            {
-                // We're still in the original receive loop
-
-                // New updates will be retreived by the original reader thread
-                Logger.LogDebug("{0}Original reader processing is still in progress and will pick up the changes", LoggerPrefix);
-
-                return;
-            }
-
-            // _notificationState wasn't ProcessingUpdates (likely AwaitingNotification)
-
-            // Check notification args for issues
-            if (e.Type == SqlNotificationType.Change)
-            {
-                if (e.Info == SqlNotificationInfo.Update)
-                {
-                    Logger.LogDebug(string.Format("{0}SQL notification details: Type={1}, Source={2}, Info={3}", LoggerPrefix, e.Type, e.Source, e.Info));
-                }
-                else if (e.Source == SqlNotificationSource.Timeout)
-                {
-                    Logger.LogDebug("{0}SQL notification timed out", LoggerPrefix);
-                }
-                else
-                {
-                    Logger.LogError(string.Format("{0}Unexpected SQL notification details: Type={1}, Source={2}, Info={3}", LoggerPrefix, e.Type, e.Source, e.Info));
-
-                    Faulted(new SqlMessageBusException(String.Format(CultureInfo.InvariantCulture, Resources.Error_UnexpectedSqlNotificationType, e.Type, e.Source, e.Info)));
-                }
-            }
-            else if (e.Type == SqlNotificationType.Subscribe)
-            {
-                Debug.Assert(e.Info != SqlNotificationInfo.Invalid, "Ensure the SQL query meets the requirements for query notifications at http://msdn.microsoft.com/en-US/library/ms181122.aspx");
-
-                Logger.LogError(string.Format("{0}SQL notification subscription error: Type={1}, Source={2}, Info={3}", LoggerPrefix, e.Type, e.Source, e.Info));
-
-                if (e.Info == SqlNotificationInfo.TemplateLimit)
-                {
-                    // We've hit a subscription limit, pause for a bit then start again
-                    Thread.Sleep(2000);
-                }
-                else
-                {
-                    // Unknown subscription error, let's stop using query notifications
-                    _notificationState = NotificationState.Disabled;
-                    try
-                    {
-                        SqlDependency.Stop(ConnectionString);
-                    }
-                    catch (Exception) { }
-                }
-            }
-
-            Changed();
-        }      
-#endif
-
 
         [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "I need to")]
         protected virtual bool StartSqlDependencyListener()
         {
-#if NETSTANDARD1_6
             return false;
-#else
-            lock (_stopLocker)
-            {
-                if (_disposing)
-                {
-                    return false;
-                }
-            }
-
-            if (_notificationState == NotificationState.Disabled)
-            {
-                return false;
-            }
-
-            Logger.LogDebug("{0}Starting SQL notification listener", LoggerPrefix);
-            try
-            {
-                if (SqlDependency.Start(ConnectionString))
-                {
-                    Logger.LogDebug("{0}SQL notification listener started", LoggerPrefix);
-                }
-                else
-                {
-                    Logger.LogDebug("{0}SQL notification listener was already running", LoggerPrefix);
-                }
-                return true;
-            }
-            catch (InvalidOperationException)
-            {
-                Logger.LogInformation("{0}SQL Service Broker is disabled, disabling query notifications", LoggerPrefix);
-
-                _notificationState = NotificationState.Disabled;
-                return false;
-            }
-            catch (Exception ex)
-            {
-                Logger.LogError(String.Format("{0}Error starting SQL notification listener: {1}", LoggerPrefix, ex));
-
-                return false;
-            }
-#endif
         }
 
         [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Stopping is a terminal state on a bg thread")]
@@ -416,22 +197,6 @@ namespace Pomelo.AspNetCore.SignalR.MySql
             if (ex != null)
             {
                 Faulted(ex);
-            }
-
-            if (_notificationState != NotificationState.Disabled)
-            {
-#if NET451
-                try
-                {
-                    Logger.LogDebug("{0}Stopping SQL notification listener", LoggerPrefix);
-                    SqlDependency.Stop(ConnectionString);
-                    Logger.LogDebug("{0}SQL notification listener stopped", LoggerPrefix);
-                }
-                catch (Exception stopEx)
-                {
-                    Logger.LogError(String.Format("{0}Error occured while stopping SQL notification listener: {1}", LoggerPrefix, stopEx));
-                }
-#endif
             }
 
             lock (_stopLocker)
@@ -461,12 +226,5 @@ namespace Pomelo.AspNetCore.SignalR.MySql
         {
             get { return _updateLoopRetryDelays; }
         }
-
-#if NET451
-        void IDbBehavior.AddSqlDependency(IDbCommand command, Action<SqlNotificationEventArgs> callback)
-        {
-            AddSqlDependency(command, callback);
-        }
-#endif
     }
 }

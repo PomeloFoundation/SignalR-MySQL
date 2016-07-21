@@ -6,10 +6,6 @@
     "Microsoft.Extensions.Options.ConfigurationExtensions": "1.0.0",
     "Pomelo.Data.MySql": "1.0.0"
   },
-  "buildOptions": {
-    "warningsAsErrors": true,
-    "keyFile": "../../tools/Key.snk"
-  },
   "resources": "install.sql;send.sql",
   "frameworks": {
     "net451": {

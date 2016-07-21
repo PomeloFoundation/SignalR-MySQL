@@ -123,14 +123,6 @@ namespace Pomelo.AspNetCore.SignalR.MySql
 
             _dbOperation.Queried += () => Queried();
             _dbOperation.Faulted += ex => Faulted(ex);
-#if NET451
-            _dbOperation.Changed += () =>
-            {
-                _logger.LogInformation("{0}Starting receive loop again to process updates", _loggerPrefix);
-
-                _dbOperation.ExecuteReaderWithUpdates(ProcessRecord);
-            };
-#endif
             _logger.LogDebug(String.Format("{0}Executing receive reader, initial payload ID parameter={1}", _loggerPrefix, _dbOperation.Parameters[0].Value));
 
             _dbOperation.ExecuteReaderWithUpdates(ProcessRecord);
