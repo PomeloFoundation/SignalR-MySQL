@@ -1,0 +1,19 @@
+{
+  "dependencies": {
+    "Pomelo.AspNetCore.SignalR.MySql": "0.1.0",
+    "xunit": "2.1.0",
+    "Moq": "4.2.1312.1622"
+  },
+  "buildOptions": {
+    "allowUnsafe": true,
+    "keyFile": "../../tools/Key.snk",
+    "warningsAsErrors": true
+  },
+  "frameworks": {
+    "net451": {
+      "frameworkAssemblies": {
+        "System.Threading.Tasks": ""
+      }
+    }
+  }
+}
